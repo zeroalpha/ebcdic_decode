@@ -1,17 +1,38 @@
 #require 'pry'
-#require 'yaml'
+require 'slop'
 
-file_name  = ARGV[0]
 
-map = ARGV[1]
+opts = Slop::Options.new
+opts.banner = "Usage : ebcdic_decode.rb [options]"
+opts.separator ""
+opts.separator "Required Option : "
+opts.string '-f','--file','-i','--input','The name of the File to decode',required: true
+opts.separator ""
+opts.separator "Further Options : "
+opts.string '-o','--output','The file name to write the decoded file to'
+opts.string '-c','--ccsid','--character-set','The character set used by the input file', default: "0037"
 
-map = "IBM-0037" unless map 				# Default to IBM-US
+opt_parser = Slop::Parser.new(opts)
 
-if map[/^\d+$/] then
-	map = "IBM-" + "%04i"%[map.to_i] 	# Prepend IBM- to the map string, if it consists solely of Digits
+opts = opt_parser.parse(ARGV)
+
+unless opts[:file]
+	puts "File is a required Option"
+	puts opts
+	exit 1
 end
 
-new_name = file_name + '_decoded_' + map
+#file_name  = ARGV[0]
+#map = ARGV[1]
+
+if opts[:ccsid][/^\d+$/] then
+	opts[:ccsid] = "IBM-" + "%04i"%[opts[:ccsid].to_i] 	# Prepend IBM- to the map string, if it consists solely of Digits
+end
+
+file_name = opts[:file]
+map = opts[:ccsid]
+
+new_name = opts[:output] ? opts[:output] : file_name + '_decoded_' + map
 
 print "Reading Input file #{file_name} ... "
 file = File.binread file_name
