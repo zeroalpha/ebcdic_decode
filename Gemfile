@@ -1,8 +1,9 @@
 source 'http://rubygems.org'
 
 gem 'slop', '3.4'
+gem 'nokogiri'
+gem 'awesome_print'
 
 group :development do
-	gem 'pry', '>=0.10.1'
-	#gem 'win32console'
+  gem 'pry'
 end
