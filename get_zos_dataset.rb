@@ -36,7 +36,7 @@ print "Connecting to #{host}:#{opts[:port]} ... "
 begin
   ftp = Net::FTP.new
   ftp.connect host,opts[:port]
-  raise LoginFailedError unless ftp.login(*login)
+  raise LoginFailedError, "Login rejected for user #{login[0]}" unless ftp.login(*login)
 rescue => e
   puts "\nFailed to connect to #{host}:#{opts[:port]}.\nReason: #{e.inspect}"
   exit 1
@@ -50,20 +50,3 @@ print "Recieving DS: #{dataset} ... "
 #ftp.binary = true
 ftp.getbinaryfile dataset
 puts "Done."
-
-#host = "172.21.87.134" #FFM4
-#login = ["dbft064","pdbft064"]
-#remote_dir = "AGMV800.GLOBAL.WOM.DATA"
-#local_dir = Rails.root.join('tmp','import','wstat','ftp').to_s
-
-#print "Connecting to #{host} ..."
-#begin/rescue/end ist Rubys Exception Handling, wenn zwischen begin und rescue eine Exception auftritt
-#wird sie der Variable e zugewiesen und der rescue block ausgeführt
-#begin
-#  ftp = Net::FTP.new host # FTP Verbindung aufbauen
-#  login_check = ftp.login(*login) # Mit user und PW anmelden (siehe Ruby Splat Operator für den stern)
-#rescue => e
-#  UpdateStatus.create! task: "Update", item: "FTP Connection", time: Time.now, status: "Could not open FTP Connection to #{host}\nReason: #{e.inspect}"
-#  puts "\nCould not open FTP Connection to #{host}\nReason: #{e.inspect}"
-#  exit 1 # Wenn wir nicht zum FTP Connecten können beenden wir den Rake task
-#end
