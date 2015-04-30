@@ -1,0 +1,6 @@
+TESTdata
+this should still be easy
+this a liitle less ä ö ü ,; .: -_ #' ´` ß ? \ > $ § ! " % & /
+() [] {} <> | @
+blub
+/ * - +
