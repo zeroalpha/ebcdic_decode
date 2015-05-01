@@ -2,8 +2,9 @@
 A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 
 # Features
-* Can convert z/OS Sequential-Datasets with Fixed or Variable Blocked Record Format 
-* Can create new maps from Wikipedia Articles with Translation tables
+* Convert z/OS Sequential-Datasets with Fixed or Variable Blocked Record Format to Unicode Files
+* Create new maps from Wikipedia Articles with Translation tables
+* Download Variable Blocked Datasets via FTP including the RDW (Record Descriptor Word)
 
 # To do
 * Package as Gem
