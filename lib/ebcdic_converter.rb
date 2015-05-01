@@ -1,7 +1,6 @@
 class EBCDICConverter
 
   class RecordFormatError < StandardError ; end
-  
 
   @@default_config = {
     recfm: 'FB',
@@ -27,39 +26,6 @@ class EBCDICConverter
     @file_name = file_name
     @in_file = read_file
     @out_file = ""
-  end
-
-  def parse_options(items)
-
-    opts = Slop.new(strict: true, help: true) do 
-      banner "Usage : ebcdic_decode.rb [options]"
-      separator ""
-      separator "Required Option : "
-      on '-f','--file','The name of the File to decode',required: true, argument: true
-      separator ""
-      separator "Further Options : "
-      on '-o','--output','The file name to write the decoded file to', argument: true
-      on '-c','--ccsid','The character set used by the input file', default: "0037", argument: true
-      on '-r','--recfm','The record format of the input Dataset',argument: true, default: "FB"
-      on '-l','--lrecl','The record length in case of a Fixed LRECL Dataset',as: Integer, argument: true
-    end
-
-    begin
-      opts.parse
-    rescue Slop::Error => e
-      puts e.message
-      puts opts
-      exit 1
-    end
-
-    opts = opts.to_hash
-
-    if opts[:ccsid][/^\d+$/] then
-      opts[:ccsid] = "IBM-" + "%04i"%[opts[:ccsid].to_i]  # Prepend IBM- to the map string, if it consists solely of Digits
-    end
-
-    opts[:new_name] = opts[:output] ? opts[:output] : opts[:file] + '_decoded_' + opts[:ccsid]
-    @opts = opts
   end
 
   def read_file
