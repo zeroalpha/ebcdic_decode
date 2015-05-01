@@ -1,41 +1,51 @@
 require 'nokogiri'
 require 'awesome_print'
-require 'pry'
+require 'open-uri'
+
+class MapGenerator
+
+  class MapAlreadyExistsError < StandardError ; end
+
+  def initialize(url, maps_directory = "../maps")
+    @xml = Nokogiri::HTML open(url)
+    @maps_directory = maps_directory
+    @maps_directory.unshift "/" unless @maps_directory[0] == "/"
+    @maps_directory.push "/" unless @maps_directory[-1] == "/"
+  end
+
+  def generate!
+    table = xml.css("table.wikitable.chset.nounderlines")[1] # we want the second "smaller" table
+    rows = table.css "tr"
+
+    set_name = xml.css("table.wikitable.chset.nounderlines > caption").text
+    set_id = set_name[/\d+/].to_i
+    rows.shift # Caption Row
+    rows.shift # Table Header
 
 
-# This tool reads a File with a Code page translation table from wikipedia (http://en.wikipedia.org/wiki/EBCDIC_273)
-# And creates a Character map
-xml = Nokogiri::XML File.read("test.html")
+    map_result = {}
 
-rows = xml.css "tr"
-set_name = rows.shift.children.select{|c| c.type == 1}[0].child.text.split("→")[0].chop # Tabellenüberschrift
-set_id = set_name.split(" ")[1].to_i
-rows.shift # Table Header
+    count_first = 0
+    count_sec   = 0
+    rows.each do |row|
+      count_sec = 0
+      children = row.css "td"
+      children.shift # row header
+      children.each do |child|
+        hex = count_first.to_s(16) + count_sec.to_s(16)
+        value = '"\u00' + child.children.text + '"'
+        map_result[hex.to_i(16)] = eval(value)
+        count_sec += 1
+      end
+      count_first += 1
+    end
 
-map_result = {}
+    map_result = map_result.ai.lines.to_a
+    map_result[0] = "char_maps[\"IBM-%04i\"] = {\n"%[set_id]
 
-count_first = 0
-count_sec   = 0
-rows.each do |row|
-	count_sec = 0
-	children = row.children.select{|c| c.type == 1} #XML::Element (3 would be XML::Text)
-	children.each do |child|
-		next if child.children.text.index("_")
-		hex = count_first.to_s(16) + count_sec.to_s(16)
-		value = '"\u00' + child.children.text + '"'
-#		puts value
-		map_result[hex.to_i(16)] = eval(value)
-		count_sec += 1
-	end
-	count_first += 1
+    out_name = File.dirname(__FILE__) + @maps_directory + "ibm-%04i.map"%[set_id]
+    raise MapAlreadyExistsError,"Map #{out_name} already exists" if File.exists?(out_name)
+
+    File.write out_name,map_result.join
+  end
 end
-
-#binding.pry
-
-map_result = map_result.ai
-
-map_result = "char_maps[\"IBM-%04i\"] = \\\n"%[set_id]  + map_result
-
-File.write "#{set_id}.map",map_result
-
-puts ""
