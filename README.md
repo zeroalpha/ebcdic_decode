@@ -25,7 +25,7 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 ```
 $ bundle exec ruby ebcdic_decode.rb -f <INPUT_DATASET> -c 1047 -recfm FB -lrecl 80 -o <OUTPUT_FILE>
 ```
-This would be a general use-case. Since it is so common, if not specified, recfm will default to FB and lrecl to 80
+This would be a general use-case. Since it is so common, if not specified, RECFM will default to FB and LRECL to 80
 
 ## Create new character map
 ```
