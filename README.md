@@ -10,15 +10,16 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 * Package as Gem
 * Refactor MapGenerator
 --* Find feasabile Storage format
---* Cut the wikipedia parsing code out
+--* Refactor the wikipedia parsing code into a seperate class
 --* Add more parsers
 * Add tests
 * Refactor get_zos_dataset into a class and move it to lib
 * Package as Gem
 
 # Usage
--f/--file or -I/--install are required!
--c/--ccsid specifies the Codepage
+**-f/--file** or **-I/--install** are required!
+
+**-c/--ccsid** specifies the Codepage
 
 ## Convert
 ```
