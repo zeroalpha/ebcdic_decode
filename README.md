@@ -14,9 +14,12 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 --* Add more parsers
 * Add tests
 * Refactor get_zos_dataset into a class and move it to lib
+* Package as Gem
 
 # Usage
--f or -I are required!
+-f/--file or -I/--install are required!
+-c/--ccsid specifies the Codepage
+
 ## Convert
 ```
 $ bundle exec ruby ebcdic_decode.rb -f <INPUT_DATASET> -c 1047 -recfm FB -lrecl 80 -o <OUTPUT_FILE>
