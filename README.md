@@ -14,7 +14,6 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 --* Add more parsers
 * Add tests
 * Refactor get_zos_dataset into a class and move it to lib
-* Package as Gem
 
 # Usage
 **-f/--file** or **-I/--install** are required!
@@ -31,6 +30,6 @@ This would be a general use-case. Since it is so common, if not specified, RECFM
 ```
 $ bundle exec ruby ebdcic_decode.rb -I http://en.wikipedia.org/wiki/EBCDIC_500 -e 1148
 ```
-Here the -e option specifies the CCSID of the Euro(€) update of the character set.
+In case of the -I option the -e option specifies the CCSID of the Euro(€) update of the character set.
 If it is set, another map will be created alongside the one specified with the url. 
 The only difference will be the name and byte 0x9F will be set to "\u20AC" (€ symbol)
