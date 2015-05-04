@@ -11,7 +11,9 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 * Refactor MapGenerator
   * ~~Find feasabile Storage format~~
 
-    An Array of Integers representing the Unicode Codepoints. The Array Index corresponds to the Byte index in the Codepage
+    An Array of Integers representing the Unicode Codepoints.
+    The Array Index corresponds to the Byte index in the Codepage.
+    And is serialized with YAML
 
   * Refactor the wikipedia parsing code into a seperate class
   * Add more parsers
