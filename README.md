@@ -9,9 +9,12 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 # To do
 * Package as Gem
 * Refactor MapGenerator
---* Find feasabile Storage format
---* Refactor the wikipedia parsing code into a seperate class
---* Add more parsers
+  * ~~Find feasabile Storage format~~
+
+    An Array of Integers representing the Unicode Codepoints. The Array Index corresponds to the Byte index in the Codepage
+
+  * Refactor the wikipedia parsing code into a seperate class
+  * Add more parsers
 * Add tests
 * Refactor get_zos_dataset into a class and move it to lib
 
