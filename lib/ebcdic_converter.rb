@@ -4,7 +4,7 @@ class EBCDICConverter
 
   class RecordFormatError < StandardError ; end
 
-  @@default_config = {
+  DEFAULT_CONFIG = {
     recfm: 'FB',
     lrecl: 80,
     ccsid: 37,
@@ -12,17 +12,18 @@ class EBCDICConverter
   }
 
   def initialize(file_name,config = {})
-    @config = @@default_config.merge(config)
-    
-    @config[:ccsid] = "IBM-%04i"%[config[:ccsid][/\d+/].to_i]
+    @config = DEFAULT_CONFIG.merge(config)
+
+    @config[:ccsid] = "IBM-%04i"%[@config[:ccsid].to_s[/\d+/].to_i]
     
     tmp = @config[:maps_directory].chars
     tmp.unshift "/" unless tmp[0] == "/"
     tmp.push "/" unless tmp[-1] == "/"
     @config[:maps_directory] = tmp.join
 
-    @char_maps = load_maps(@config[:maps_directory])
-    @map = @char_maps[@config[:ccsid]]
+    #@char_maps = load_maps(@config[:maps_directory])
+    #@map = @char_maps[@config[:ccsid]]
+    @map = load_map @config[:ccsid]
     @config[:recfm] = @config[:recfm].upcase
 
     @file_name = file_name
@@ -38,6 +39,10 @@ class EBCDICConverter
     char_maps = {}
     Dir.glob(File.dirname(__FILE__) + maps_directory + "*.yml").each{|f| char_maps[f[/ibm-\d{4}/].upcase] = YAML.load(File.read(f))}
     char_maps
+  end
+
+  def load_map(ccsid)
+    char_map = YAML.load(File.read([File.dirname(__FILE__),@config[:maps_directory],ccsid.downcase,'.yml'].join))
   end
 
   def convert!
