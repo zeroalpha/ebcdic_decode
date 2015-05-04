@@ -1,3 +1,5 @@
+require 'yaml'
+
 class EBCDICConverter
 
   class RecordFormatError < StandardError ; end
@@ -33,11 +35,8 @@ class EBCDICConverter
   end
 
   def load_maps(maps_directory)
-    # Yes i understand, that this is dangerous
-    # Ruby itself was just the first format, which describes the map in a human readable format
-    # YAML just breaks everything and Marshal isn't "human readable/editable"
     char_maps = {}
-    Dir.glob(File.dirname(__FILE__) + maps_directory + "*").each{|f| eval(File.read(f))}
+    Dir.glob(File.dirname(__FILE__) + maps_directory + "*.yml").each{|f| char_maps[f[/ibm-\d{4}/].upcase] = YAML.load(File.read(f))}
     char_maps
   end
 
@@ -60,18 +59,19 @@ class EBCDICConverter
   end
 
   def convert_fb
-    byte_converted = @in_file.bytes.map{|b| @map[b]}.join
-    @out_file = byte_converted.chars.each_slice(@config[:lrecl]).to_a.map{|line| line.join}.join("\n")
+    converted_bytes = @in_file.bytes.map{|b| @map[b]}
+    @out_file = converted_bytes.each_slice(@config[:lrecl]).to_a.map{|line| line.pack('U*')}.join("\n")
   end
 
   def convert_vb
     bytes = @in_file.bytes
     while bytes.size > 0
       #binding.pry
-      line_size = bytes[1] # Bytes 0..4 are the RDW. RDW[0..1] holds teh record length and RDW[2..3] are OS reserved (and usually 0)
+      #FIXME Add dualbyte lengths
+      line_size = bytes[1] # Bytes 0..4 are the RDW. RDW[0..1] holds the record length and RDW[2..3] are OS reserved (and usually 0)
       line = bytes.slice!(0,line_size)
       line.slice!(0,4) # Discard the RDW 
-      @out_file << line.map{|b| @map[b]}.join + "\n"
+      @out_file << line.map{|b| @map[b]}.pack("U*") + "\n"
     end
     @out_file
   end
