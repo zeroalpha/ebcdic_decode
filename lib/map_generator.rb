@@ -1,6 +1,9 @@
 require 'nokogiri'
 require 'awesome_print'
 require 'net/http'
+require 'yaml'
+
+require 'pry'
 
 class MapGenerator
 
@@ -36,24 +39,26 @@ class MapGenerator
       raise HTMLParserError, "No usable input Tables found with : '#{selector}'"
     end      
 
-    output = map_result.ai.lines.to_a
-    output[0] = "char_maps[\"IBM-%04i\"] = {\n"%[@ccsid]
+    #binding.pry
 
-    out_name = File.dirname(__FILE__) + @maps_directory + "ibm-%04i.map"%[@ccsid]
+    #output = map_result.ai.lines.to_a
+    #output[0] = "char_maps[\"IBM-%04i\"] = {\n"%[@ccsid]
+
+    out_name = File.dirname(__FILE__) + @maps_directory + "ibm-%04i.yml"%[@ccsid]
     #raise MapAlreadyExistsError,"Map #{out_name} already exists" if File.exists?(out_name)
 
-    File.write out_name,output.join
+    File.write out_name,YAML.dump(map_result)
 
     if @config[:euro_map_ccsid] then
-      output = generate_euro_map(map_result).ai.lines.to_a
-      out_name = File.dirname(__FILE__) + @maps_directory + "ibm-%04i.map"%[@config[:euro_map_ccsid]]
-      File.write out_name, output.join
+      output = generate_euro_map(map_result)
+      out_name = File.dirname(__FILE__) + @maps_directory + "ibm-%04i.yml"%[@config[:euro_map_ccsid]]
+      File.write out_name, YAML.dump(output)
     end
   end
 
   def generate_euro_map(non_euro_map)
     euro_map = non_euro_map.dup
-    euro_map["9F".to_i(16)] = "\u20AC" # € zeichen
+    euro_map["9F".to_i(16)] = '20AC'.to_i(16) # € zeichen
     euro_map
   end
 
@@ -64,20 +69,14 @@ class MapGenerator
     rows.shift # caption
     rows.shift # Table Header
 
-    map_result = {}
-    count_first = 0
-    count_sec   = 0
+    map_result = []
     rows.each do |row|
-      count_sec = 0
       children = row.css "td"
-      children.shift # row header
+      children.shift # row header      
       children.each do |child|
-        hex = count_first.to_s(16) + count_sec.to_s(16)
-        value = '"\u00' + child.children.text + '"'
-        map_result[hex.to_i(16)] = eval(value)
-        count_sec += 1
+        value = '00' + child.children.text
+        map_result << value.to_i(16)
       end
-      count_first += 1
     end
     map_result    
   end
@@ -89,21 +88,15 @@ class MapGenerator
     rows.shift # Table header
     rows.pop # footer
 
-    map_result = {}
-    count_first = 0
-    count_sec   = 0
+    map_result = []
     rows.each do |row|
-      count_sec = 0
       children = row.css 'td'
       children.each do |child|
-        hex = count_first.to_s(16) + count_sec.to_s(16)
         value = child.text.lines
         value = value[1].chomp
         value = (value[/[\dABCDEF]{4}/] ? value : '0000')
-        map_result[hex.to_i(16)] = eval('"\u' + value + '"')
-        count_sec += 1
+        map_result << value.to_i(16)
       end
-      count_first += 1
     end
     map_result     
   end
