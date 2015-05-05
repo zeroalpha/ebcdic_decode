@@ -9,6 +9,6 @@ gem 'rspec'
 group :development do
   gem 'pry'
   gem 'guard'
-  gem 'wdm', '>= 0.1.0' if Gem.win_platform?
-  gem 'guard-rspec'
+  gem 'guard-rspec', require: false
+  gem 'wdm' if Gem.win_platform?
 end

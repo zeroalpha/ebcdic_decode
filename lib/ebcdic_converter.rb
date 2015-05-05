@@ -27,12 +27,7 @@ class EBCDICConverter
     @config[:recfm] = @config[:recfm].upcase
 
     @file_name = file_name
-    @in_file = read_file
-    @out_file = ""
-  end
-
-  def read_file
-    File.binread @file_name
+    @in_file = File.binread @file_name
   end
 
   def load_maps(maps_directory)
@@ -42,47 +37,47 @@ class EBCDICConverter
   end
 
   def load_map(ccsid)
-    char_map = YAML.load(File.read([File.dirname(__FILE__),@config[:maps_directory],ccsid.downcase,'.yml'].join))
+    begin
+      char_map = YAML.load(File.read([File.dirname(__FILE__),@config[:maps_directory],ccsid.downcase,'.yml'].join))
+    rescue => e
+      puts e.inspect
+      abort
+    end
   end
 
   def convert!
-    unless @char_maps[@config[:ccsid]]
-      puts "Character Set not found : #{@config[:ccsid]}"
-      exit 1
-    end
-
-    case @config[:recfm]
+    converted = case @config[:recfm]
     when 'FB' then
-      convert_fb
+      convert_fb(@in_file)
     when 'VB' then
-      convert_vb
+      convert_vb(@in_file)
     else
-      raise EBCDICConverter::RecordFormatError, "Unsupported Record Format : #{@opts[:recfm]}"
+      raise EBCDICConverter::RecordFormatError, "Unsupported Record Format : #{@config[:recfm]}"
     end
 
-    write_file
+    write_file converted
   end
 
-  def convert_fb
-    converted_bytes = @in_file.bytes.map{|b| @map[b]}
-    @out_file = converted_bytes.each_slice(@config[:lrecl]).to_a.map{|line| line.pack('U*')}.join("\n")
+  def convert_fb(input)
+    input.bytes.map{|b| @map[b]}.each_slice(@config[:lrecl]).to_a.map{|line| line.pack('U*')}.join("\n")
   end
 
-  def convert_vb
-    bytes = @in_file.bytes
+  def convert_vb(input)
+    bytes = input.bytes
+    ret = ""
     while bytes.size > 0
-      #binding.pry
       #FIXME Add dualbyte lengths
       line_size = bytes[1] # Bytes 0..4 are the RDW. RDW[0..1] holds the record length and RDW[2..3] are OS reserved (and usually 0)
       line = bytes.slice!(0,line_size)
       line.slice!(0,4) # Discard the RDW 
-      @out_file << line.map{|b| @map[b]}.pack("U*") + "\n"
+      ret << line.map{|b| @map[b]}.pack("U*") + "\n"
     end
-    @out_file
+    ret.chomp! # delete the trailing newline
+    ret
   end
 
-  def write_file(file_name = nil)
+  def write_file(data,file_name = nil)
     file_name = file_name ? file_name : "#{@file_name}-decoded-#{@config[:ccsid]}-#{@config[:recfm]}.txt"    
-    File.write file_name,@out_file
+    File.binwrite file_name,data
   end
 end
