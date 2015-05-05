@@ -17,7 +17,7 @@ A Ruby tool to convert IBM EBCDIC Datasets to Unicode Files
 
   * Refactor the wikipedia parsing code into a seperate class
   * Add more parsers
-* Add tests
+* Add **more** tests
 * Refactor get_zos_dataset into a class and move it to lib
 
 # Usage
