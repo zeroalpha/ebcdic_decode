@@ -30,13 +30,8 @@ class EBCDICConverter
     @in_file = File.binread @file_name
   end
 
-  def load_maps(maps_directory)
-    char_maps = {}
-    Dir.glob(File.dirname(__FILE__) + maps_directory + "*.yml").each{|f| char_maps[f[/ibm-\d{4}/].upcase] = YAML.load(File.read(f))}
-    char_maps
-  end
-
   def load_map(ccsid)
+    ccsid = "IBM-%04i"%[ccsid.to_s[/\d+/].to_i]
     begin
       char_map = YAML.load(File.read([File.dirname(__FILE__),@config[:maps_directory],ccsid.downcase,'.yml'].join))
     rescue => e

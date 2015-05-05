@@ -99,9 +99,30 @@ describe EBCDICConverter do
       @conv = EBCDICConverter.new @input_filename,ccsid: "ibm-1141", recfm: 'vb'
     end
 
-    it 'returns the contents of input converted to Unicode' do
-      
+    it 'returns the contents of input converted to Unicode' do      
       expect(@conv.convert_vb(@input_file)).to eq(@unicode_sample_data)
+    end
+  end
+
+  describe '#convert_fb' do
+    it 'returns the contents of input converted to Unicode'
+  end
+
+  describe '#load_map(ccsid)' do
+    before :all do
+      @conv = EBCDICConverter.new(@input_filename,ccsid: "ibm-1141", recfm: 'vb')
+      @map_contents = YAML.load(File.read(File.dirname(__FILE__) + '/../maps/ibm-0037.yml'))
+    end
+
+    it 'loads the map corresponding to the ccsid' do      
+      expect(@conv.load_map('ibm-0037')).to eq(@map_contents)
+    end
+
+    it 'accepts any form of string including a number and numbers themselves' do
+      expect(@conv.load_map('abc37def')).to eq(@map_contents)
+      expect(@conv.load_map('0037')).to eq(@map_contents)
+      expect(@conv.load_map('37')).to eq(@map_contents)
+      expect(@conv.load_map(37)).to eq(@map_contents)
     end
   end
 end
