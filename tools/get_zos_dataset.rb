@@ -36,11 +36,12 @@ print "Connecting to #{host}:#{opts[:port]} ... "
 begin
   ftp = Net::FTP.new
   ftp.connect host,opts[:port]
-  raise LoginFailedError, "Login rejected for user #{login[0]}" unless ftp.login(*login)
 rescue => e
   puts "\nFailed to connect to #{host}:#{opts[:port]}.\nReason: #{e.inspect}"
   exit 1
 end
+raise LoginFailedError, "Login rejected for user #{login[0]}" unless ftp.login(*login)
+
 puts "Done."
 
 # Enable transfer of RDW for VB Datasets
