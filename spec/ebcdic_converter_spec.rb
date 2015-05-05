@@ -124,5 +124,14 @@ describe EBCDICConverter do
       expect(@conv.load_map('37')).to eq(@map_contents)
       expect(@conv.load_map(37)).to eq(@map_contents)
     end
+
+    it 'raises an error, if no corresponding map is found' do
+      expect { @conv.load_map('9999') }.to raise_error(EBCDICConverter::CharacterMapNotFound)
+    end
+
+    it 'raises an error if no CCSID can be extracted from the input parameter' do
+      expect { @conv.load_map('abcdefg') }.to raise_error(EBCDICConverter::NonNumericCCSIDError)
+    end
+
   end
 end

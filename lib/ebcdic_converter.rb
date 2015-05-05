@@ -3,6 +3,8 @@ require 'yaml'
 class EBCDICConverter
 
   class RecordFormatError < StandardError ; end
+  class NonNumericCCSIDError < StandardError ; end
+  class CharacterMapNotFound < StandardError ; end
 
   DEFAULT_CONFIG = {
     recfm: 'FB',
@@ -21,8 +23,6 @@ class EBCDICConverter
     tmp.push "/" unless tmp[-1] == "/"
     @config[:maps_directory] = tmp.join
 
-    #@char_maps = load_maps(@config[:maps_directory])
-    #@map = @char_maps[@config[:ccsid]]
     @map = load_map @config[:ccsid]
     @config[:recfm] = @config[:recfm].upcase
 
@@ -31,12 +31,16 @@ class EBCDICConverter
   end
 
   def load_map(ccsid)
-    ccsid = "IBM-%04i"%[ccsid.to_s[/\d+/].to_i]
+
+    if (ccsid = ccsid.to_s[/\d+/].to_i) == 0
+      raise NonNumericCCSIDError, "The CCSID needs to be an Integer or a String containing the number"
+    end
+    ccsid = "IBM-%04i"%[ccsid]
+    map_filename = File.dirname(__FILE__) + @config[:maps_directory] + ccsid.downcase + '.yml'
     begin
-      char_map = YAML.load(File.read([File.dirname(__FILE__),@config[:maps_directory],ccsid.downcase,'.yml'].join))
+      char_map = YAML.load(File.read(map_filename))
     rescue => e
-      puts e.inspect
-      abort
+      raise CharacterMapNotFound, "Failed to find file #{map_filename}"
     end
   end
 
@@ -47,7 +51,7 @@ class EBCDICConverter
     when 'VB' then
       convert_vb(@in_file)
     else
-      raise EBCDICConverter::RecordFormatError, "Unsupported Record Format : #{@config[:recfm]}"
+      raise RecordFormatError, "Unsupported Record Format : #{@config[:recfm]}"
     end
 
     write_file converted
@@ -72,7 +76,7 @@ class EBCDICConverter
   end
 
   def write_file(data,file_name = nil)
-    file_name = file_name ? file_name : "#{@file_name}-decoded-#{@config[:ccsid]}-#{@config[:recfm]}.txt"    
+    file_name = file_name ? file_name : "#{@file_name}-decoded-#{@config[:ccsid]}-#{@config[:recfm]}.txt"
     File.binwrite file_name,data
   end
 end
