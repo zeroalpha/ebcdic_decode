@@ -1,6 +1,8 @@
 require 'net/ftp'
 require 'slop'
 
+require 'pry'
+
 opts = Slop.new(strict: true, help: true) do 
   banner "Usage : get_zos_dataset [options] HOST DATASET"
   separator ""
@@ -48,6 +50,9 @@ puts "Done."
 ftp.sendcmd 'SITE RDW'
 
 print "Recieving DS: #{dataset} ... "
-#ftp.binary = true
-ftp.getbinaryfile dataset
+begin
+  ftp.getbinaryfile dataset  
+rescue Exception => e
+  binding.pry
+end
 puts "Done."
