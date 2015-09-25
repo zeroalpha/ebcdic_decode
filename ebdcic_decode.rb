@@ -11,6 +11,28 @@ ftp = MvsFtp.new "mvs4.rzffm.db.de",['zcm0800',Base64.decode64("T21lZ2EzMDM=\n")
 
 data = ftp.download(dataset)
 
+puts "Converting #{dataset}"
+conv = EbcdicConverter.new
+
+ret = data[:member].map do |ds|
+  puts "Converting #{dataset}(#{ds[:name]})"
+  #binding.pry
+  {
+    name: ds[:name],
+    data: conv.convert(ds[:data],500,dataset_config = {})
+  }
+end
+
+ret = {
+  name: data[:name],
+  member: ret
+}
+
+ret[:member].each do |ds|
+  filename = File.dirname(__FILE__) + '/downloads/' + ret[:name] + '/' + ds[:name]
+  File.write filename,ds[:data]
+end
+
 binding.pry
 
 puts ""
