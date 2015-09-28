@@ -3,7 +3,10 @@ require 'base64'
 require File.dirname(__FILE__) + '/lib/ebcdic_converter.rb'
 require File.dirname(__FILE__) + '/lib/mvs_ftp.rb'
 
-puts("Please provide a Dataset to convert")&&exit(1) unless ARGV[0]
+unless ARGV[0]
+  puts("Please provide a Dataset to convert")
+  exit 1
+end
 dataset = ARGV[0]
 puts dataset
 
@@ -30,9 +33,11 @@ ret = {
 
 ret[:member].each do |ds|
   filename = File.dirname(__FILE__) + '/downloads/' + ret[:name] + '/' + ds[:name]
+  puts "Saving #{filename}"
+  Dir.mkdir(File.dirname(filename)) unless Dir.exist?(File.dirname(filename))
   File.write filename,ds[:data]
 end
 
-binding.pry
+#binding.pry
 
 puts ""
