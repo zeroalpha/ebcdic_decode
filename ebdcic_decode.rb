@@ -1,5 +1,5 @@
 require 'pry'
-require 'base64'
+require 'yaml'
 require File.dirname(__FILE__) + '/lib/ebcdic_converter.rb'
 require File.dirname(__FILE__) + '/lib/mvs_ftp.rb'
 
@@ -8,9 +8,14 @@ unless ARGV[0]
   exit 1
 end
 dataset = ARGV[0]
-puts dataset
 
-ftp = MvsFtp.new "mvs4.rzffm.db.de",['zcm0800',Base64.decode64("T21lZ2EzMDM=\n")]
+ccsid = 500
+if ARGV[1]
+  ccsid = ARGV[1].to_i
+end
+
+secret = YAML.load(File.read(File.dirname(__FILE__) + '/config/secret.yml'))
+ftp = MvsFtp.new "mvs4.rzffm.db.de",[secret[:user],secret[:password]]
 
 data = ftp.download(dataset)
 
@@ -22,7 +27,7 @@ ret = data[:member].map do |ds|
   #binding.pry
   {
     name: ds[:name],
-    data: conv.convert(ds[:data],500,dataset_config = {})
+    data: conv.convert(ds[:data],ccsid,dataset_config = {})
   }
 end
 
