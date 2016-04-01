@@ -1,44 +1,48 @@
 require 'pry'
-require 'slop'
+require 'yaml'
+require File.dirname(__FILE__) + '/lib/ebcdic_converter.rb'
+require File.dirname(__FILE__) + '/lib/mvs_ftp.rb'
 
-$LOAD_PATH.unshift(File.dirname(__FILE__) + "/lib")
-require  'ebcdic_converter'
-require 'map_generator'
-
-class MissingRequiredOption < Slop::Error ; end
-
-opts = Slop.new(strict: true, help: true) do 
-  banner "Usage : ebcdic_decode.rb [options]"
-  separator ""
-  separator "Required Option : "
-  on '-f','--file','The name of the File to decode', argument: true # ,required: true
-  separator "OR"
-  on "-I", '--install','create a new charmap from a wikipedia page, takes the URL', argument: true
-  separator ""
-  separator "Converter Options : "
-  on '-o','--output','The file name to write the decoded file to', argument: true
-  on '-c','--ccsid','The character set used by the input file', default: "0037", argument: true
-  on '-r','--recfm','The record format of the input Dataset',argument: true, default: "FB"
-  on '-l','--lrecl','The record length in case of a Fixed LRECL Dataset',as: Integer, argument: true
-  separator ""
-  separator "Install Options : "
-  on '-e', '--euro-map-ccsid', 'The CCSID of the € Codepage corresponding to your CCSID. i.e. 273 => 1141', argument: true
-end
-
-begin
-  opts.parse
-  raise MissingRequiredOption, "You need to specify -f or -I" unless opts[:file] || opts[:install]
-rescue Slop::Error => e
-  puts e.message
-  puts opts
+unless ARGV[0]
+  puts("Please provide a Dataset to convert")
   exit 1
 end
+dataset = ARGV[0]
 
-opts = opts.to_hash
-
-if file = opts[:file] then
-  EBCDICConverter.new(file,opts).convert!
-elsif url = opts[:install]
-  MapGenerator.new(url,euro_map_ccsid: opts[:"euro-map-ccsid"]).generate!
+ccsid = 500
+if ARGV[1]
+  ccsid = ARGV[1].to_i
 end
 
+secret = YAML.load(File.read(File.dirname(__FILE__) + '/config/secret.yml'))
+ftp = MvsFtp.new "mvs4.rzffm.db.de",[secret[:user],secret[:password]]
+
+data = ftp.download(dataset)
+
+puts "Converting #{dataset}"
+conv = EbcdicConverter.new
+
+ret = data[:member].map do |ds|
+  puts "Converting #{dataset}(#{ds[:name]})"
+  #binding.pry
+  {
+    name: ds[:name],
+    data: conv.convert(ds[:data],ccsid,dataset_config = {})
+  }
+end
+
+ret = {
+  name: data[:name],
+  member: ret
+}
+
+ret[:member].each do |ds|
+  filename = File.dirname(__FILE__) + '/downloads/' + ret[:name] + '/' + ds[:name]
+  puts "Saving #{filename}"
+  Dir.mkdir(File.dirname(filename)) unless Dir.exist?(File.dirname(filename))
+  File.write filename,ds[:data]
+end
+
+#binding.pry
+
+puts ""

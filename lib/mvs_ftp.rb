@@ -19,9 +19,14 @@ class MvsFtp
     local_file = File.join(File.dirname(__FILE__),'..','downloads',dataset)
     #"550 Retrieval of a whole partitioned data set is not supported. Use MGET or MVSGET for this purpose.\n"
     #binding.pry
+    puts "Downloading #{dataset}"
     ret = nil
     begin
+<<<<<<< HEAD
       ret = @ftp.getbinaryfile(dataset,local_file)
+=======
+      ret = {name: dataset, member: [{name: dataset, data: @ftp.getbinaryfile(dataset,nil)}]}
+>>>>>>> ecc5226c57b52982e922fdd20514180909cc49d5
     rescue => e
       File.delete local_file
       if(e.message.index("550")) then
@@ -40,11 +45,18 @@ class MvsFtp
     member = @ftp.dir
     member.shift #header zeile entfernen
     member.map!{|line| line.split(" ")[0]} #den wahnsinn vom FTP auf den member namen eindampfen
+<<<<<<< HEAD
     member.map do |mem|
       local_path = File.join(local_dir,mem)
       puts local_path 
       @ftp.getbinaryfile(mem,local_path)
+=======
+    member.map! do |mem|
+      puts "Downloading #{partitioned_dataset}(#{mem})"
+      {name: mem, data: @ftp.getbinaryfile(mem,nil)}
+>>>>>>> ecc5226c57b52982e922fdd20514180909cc49d5
     end
-    binding.pry
+    #binding.pry
+    {name: partitioned_dataset, member: member}
   end
 end

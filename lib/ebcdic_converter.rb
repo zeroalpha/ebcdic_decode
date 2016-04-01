@@ -13,9 +13,9 @@ class EbcdicConverter
   def convert(input_string,input_charmap,dataset_config = {})
     config = DEFAULT_CONFIG.merge(dataset_config)
     @map = load_map(input_charmap)
-    case config['recfm']
+    case config[:recfm]
     when 'FB'
-      convert_fb(input_string,config['lrecl'])
+      convert_fb(input_string,config[:lrecl])
     when 'VB'
       convert_vb(input_string)
     end
@@ -23,7 +23,13 @@ class EbcdicConverter
 
   private
   def convert_fb(input,record_length)
-    input.bytes.map{|b| @map[b]}.each_slice(record_length).to_a.map{|line| line.pack('U*')}.join("\n")
+    #binding.pry
+    input
+      .bytes
+      .map{|b| @map[b]}
+      .each_slice(record_length)
+      .to_a.map{|line| line.pack('U*')}
+      .join("\n")
   end
 
   def convert_vb(input)
@@ -45,7 +51,7 @@ class EbcdicConverter
       raise NonNumericCCSIDError, "The CCSID needs to be an Integer or a String containing the number"
     end
     ccsid = "IBM-%04i"%[ccsid]
-    map_filename = File.dirname(__FILE__) + '../maps' + ccsid.downcase + '.yml'
+    map_filename = File.dirname(__FILE__) + '/../maps/' + ccsid.downcase + '.yml'
     begin
       char_map = YAML.load(File.read(map_filename))
     rescue => e
