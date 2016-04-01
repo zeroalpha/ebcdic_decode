@@ -15,15 +15,17 @@ class MvsFtp
     @ftp.sendcmd 'SITE RDW' # Enable transfer of RDW for VB Datasets
   end
 
-  def download(dataset)
+  def download(dataset,local_file=nil)
+    local_file = File.join(File.dirname(__FILE__),'..','downloads',dataset)
     #"550 Retrieval of a whole partitioned data set is not supported. Use MGET or MVSGET for this purpose.\n"
     #binding.pry
     ret = nil
     begin
-      ret = @ftp.getbinaryfile(dataset)
+      ret = @ftp.getbinaryfile(dataset,local_file)
     rescue => e
+      File.delete local_file
       if(e.message.index("550")) then
-        ret = download_member(dataset)
+        ret = download_member(dataset,local_file)
       else
         puts e.inspect
         ret = nil
@@ -32,14 +34,16 @@ class MvsFtp
     ret
   end
 
-  def download_member(partitioned_dataset)
-    
+  def download_member(partitioned_dataset,local_dir)
+    FileUtils.mkdir_p(local_dir) unless Dir.exists?(local_dir)
     @ftp.chdir "'#{partitioned_dataset}'"
     member = @ftp.dir
     member.shift #header zeile entfernen
     member.map!{|line| line.split(" ")[0]} #den wahnsinn vom FTP auf den member namen eindampfen
     member.map do |mem|
-      @ftp.getbinaryfile(mem)
+      local_path = File.join(local_dir,mem)
+      puts local_path 
+      @ftp.getbinaryfile(mem,local_path)
     end
     binding.pry
   end
