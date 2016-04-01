@@ -1,7 +1,10 @@
 require 'pry'
 require 'yaml'
-require File.dirname(__FILE__) + '/lib/ebcdic_converter.rb'
-require File.dirname(__FILE__) + '/lib/mvs_ftp.rb'
+#require File.dirname(__FILE__) + '/lib/ebcdic_converter.rb'
+#require File.dirname(__FILE__) + '/lib/mvs_ftp.rb'
+require_relative 'lib/ebcdic_converter.rb'
+require_relative 'lib/mvs_ftp.rb'
+
 
 unless ARGV[0]
   puts("Please provide a Dataset to convert")
@@ -37,12 +40,13 @@ ret = {
 }
 
 ret[:member].each do |ds|
-  filename = File.dirname(__FILE__) + '/downloads/' + ret[:name] + '/' + ds[:name]
+  filename = File.join(File.dirname(__FILE__),'downloads',ret[:name], ds[:name])
   puts "Saving #{filename}"
-  Dir.mkdir(File.dirname(filename)) unless Dir.exist?(File.dirname(filename))
+  local_dir = File.dirname(filename)
+  FileUtils.mkdir_p(local_dir) unless Dir.exists?(local_dir)
   File.write filename,ds[:data]
 end
 
-#binding.pry
+binding.pry
 
 puts ""
