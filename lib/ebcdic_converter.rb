@@ -1,4 +1,3 @@
-
 class EbcdicConverter
   
   class CharacterMapNotFound < StandardError ; end
